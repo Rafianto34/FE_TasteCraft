@@ -61,3 +61,55 @@ Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show')
 
 Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit')->middleware('auth');
 Route::post('/profile/edit', [ProfileController::class, 'update'])->name('profile.update')->middleware('auth');
+
+use App\Http\Controllers\AdminController;
+
+Route::middleware(['auth:sanctum', 'isAdmin'])->prefix('admin')->group(function () {
+    // Dashboard
+    Route::get('/dashboard/stats', [AdminController::class, 'getDashboardStats']);
+    Route::get('/system/info', [AdminController::class, 'getSystemInfo']);
+
+    // Manajemen Resep
+    Route::prefix('recipes')->group(function () {
+        Route::get('/', [AdminController::class, 'getRecipes']);
+        Route::post('/', [RecipeController::class, 'store']);
+        Route::post('{id}/update', [AdminController::class, 'updateRecipe']);
+        Route::delete('{id}', [AdminController::class, 'deleteRecipe']);
+    });
+
+    // Manajemen Pengguna
+    Route::prefix('users')->group(function () {
+        Route::get('/', [AdminController::class, 'getUsers']);
+        Route::post('/', [AdminController::class, 'createUser']);
+        Route::put('{id}', [AdminController::class, 'updateUser']);
+        Route::delete('{id}', [AdminController::class, 'deleteUser']);
+        Route::put('{id}/role', [AdminController::class, 'updateUserRole']);
+    });
+
+    // Manajemen Komentar
+    Route::prefix('comments')->group(function () {
+        Route::get('/', [AdminController::class, 'getComments']);
+        Route::delete('{id}', [AdminController::class, 'deleteComment']);
+    });
+
+    // Manajemen Bookmark
+    Route::prefix('bookmarks')->group(function () {
+        Route::get('/', [AdminController::class, 'getBookmarks']);
+        Route::delete('{id}', [AdminController::class, 'deleteBookmark']);
+    });
+
+    Route::prefix('admin')->middleware(['auth:sanctum', 'isAdmin'])->group(function () {
+        // Manajemen Komentar
+        Route::prefix('comments')->group(function () {
+            Route::get('/', [AdminController::class, 'getComments'])->name('admin.comments');
+            Route::delete('{id}', [AdminController::class, 'deleteComment'])->name('admin.comments.delete');
+        });
+    
+        // Manajemen Bookmark
+        Route::prefix('bookmarks')->group(function () {
+            Route::get('/', [AdminController::class, 'getBookmarks'])->name('admin.bookmarks');
+            Route::delete('{id}', [AdminController::class, 'deleteBookmark'])->name('admin.bookmarks.delete');
+        });
+    });
+    
+});
